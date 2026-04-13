@@ -67,7 +67,13 @@ def get_completed_lives():
 # ─────────────────────────────────────────
 
 def get_transcript(video_id):
-    api = YouTubeTranscriptApi()
+    cookies = os.environ.get('YOUTUBE_COOKIES', '')
+    cookie_path = None
+    if cookies:
+        cookie_path = '/tmp/cookies.txt'
+        with open(cookie_path, 'w') as f:
+            f.write(cookies)
+    api = YouTubeTranscriptApi(cookie_path=cookie_path)
     try:
         transcript_list = api.list(video_id)
         try:
