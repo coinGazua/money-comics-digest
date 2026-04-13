@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>머니코믹스 다이제스트</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f12;
+    --surface: #151820;
+    --surface2: #1c2029;
+    --border: #252a35;
+    --accent: #4fffb0;
+    --accent2: #ff6b35;
+    --text: #e8ecf0;
+    --text2: #8892a0;
+    --text3: #4a5568;
+    --tag-bg: #1a2a1a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', sans-serif; font-weight: 300; min-height: 100vh; }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0;
+    background: var(--bg); z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+  .logo-text { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; letter-spacing: .1em; color: var(--text2); }
+  .logo-text span { color: var(--accent); }
+
+  .tabs { display: flex; gap: 2px; }
+  .tab { padding: 8px 20px; font-size: 12px; font-weight: 500; letter-spacing: .08em; cursor: pointer; border-radius: 6px; color: var(--text3); transition: all .2s; border: none; background: none; font-family: 'Noto Sans KR', sans-serif; }
+  .tab:hover { color: var(--text2); background: var(--surface); }
+  .tab.active { color: var(--accent); background: var(--tag-bg); }
+
+  main { max-width: 860px; margin: 0 auto; padding: 40px 32px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── DIGEST ── */
+  .date-header { margin-bottom: 32px; }
+  .date-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .date-header p { font-size: 13px; color: var(--text3); }
+
+  .digest-list { display: flex; flex-direction: column; gap: 8px; }
+  .digest-item { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: border-color .2s; }
+  .digest-item:hover { border-color: var(--text3); }
+  .digest-item.open { border-color: var(--accent); }
+
+  .digest-header { padding: 16px 20px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; background: var(--surface); user-select: none; }
+  .digest-header:hover { background: var(--surface2); }
+  .digest-meta { display: flex; align-items: center; gap: 14px; }
+  .digest-date { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; color: var(--accent); }
+  .digest-count { font-size: 11px; color: var(--text3); background: var(--surface2); padding: 2px 8px; border-radius: 20px; border: 1px solid var(--border); }
+  .digest-chevron { color: var(--text3); font-size: 12px; transition: transform .2s; }
+  .digest-item.open .digest-chevron { transform: rotate(180deg); }
+
+  .digest-body { display: none; background: var(--bg); }
+  .digest-item.open .digest-body { display: block; }
+
+  .sub-item { border-top: 1px solid var(--border); padding: 24px 24px 28px; }
+  .sub-title { font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .sub-title::before { content: ''; width: 4px; height: 14px; background: var(--accent2); border-radius: 2px; }
+  .summary-text { font-size: 13.5px; line-height: 2; color: var(--text2); white-space: pre-wrap; }
+
+  .empty-state { text-align: center; padding: 80px 20px; color: var(--text3); }
+  .empty-state .icon { font-size: 40px; margin-bottom: 16px; }
+  .empty-state h3 { font-size: 15px; font-weight: 500; margin-bottom: 8px; color: var(--text2); }
+  .empty-state p { font-size: 13px; line-height: 1.8; }
+
+  /* ── SETTINGS ── */
+  .settings-section { margin-bottom: 40px; }
+  .settings-section h2 { font-size: 14px; font-weight: 700; color: var(--text2); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12px; color: var(--text3); margin-bottom: 8px; letter-spacing: .06em; }
+  .field input, .field textarea { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 12px 16px; outline: none; transition: border-color .2s; resize: vertical; }
+  .field input:focus, .field textarea:focus { border-color: var(--accent); }
+  .field textarea { min-height: 360px; line-height: 1.8; }
+
+  .btn { padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all .2s; font-family: 'Noto Sans KR', sans-serif; }
+  .btn-primary { background: var(--accent); color: #0d0f12; }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-secondary { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); margin-right: 10px; }
+  .btn-secondary:hover { border-color: var(--text3); }
+  .btn-danger { background: #2a1515; color: #ff6b6b; border: 1px solid #3a2020; margin-right: 10px; }
+  .btn-danger:hover { border-color: #ff6b6b; }
+
+  .notice { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; font-size: 12px; color: var(--text3); line-height: 1.8; margin-bottom: 20px; }
+  .notice strong { color: var(--text2); }
+
+  /* ── MANUAL TRIGGER ── */
+  .manual-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 40px; }
+  .manual-box h2 { font-size: 14px; font-weight: 700; color: var(--text2); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; }
+  .manual-box .desc { font-size: 12px; color: var(--text3); margin-bottom: 20px; line-height: 1.7; }
+  .manual-row { display: flex; gap: 10px; align-items: flex-start; }
+  .manual-row input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 11px 14px; outline: none; transition: border-color .2s; }
+  .manual-row input:focus { border-color: var(--accent); }
+  .manual-row input::placeholder { color: var(--text3); }
+  .manual-status { margin-top: 12px; font-size: 12px; min-height: 18px; line-height: 1.6; }
+  .run-log { margin-top: 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text3); line-height: 1.8; display: none; max-height: 120px; overflow-y: auto; }
+
+  .status-ok { color: var(--accent); }
+  .status-err { color: #ff6b6b; }
+  .status-info { color: #ffd166; }
+
+  .loading { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 60px; color: var(--text3); font-size: 13px; }
+  .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <div class="logo-text"><span>머니코믹스</span> DIGEST</div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('digest', this)">📰 요약</button>
+    <button class="tab" onclick="switchTab('settings', this)">⚙️ 설정</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── DIGEST ── -->
+  <div id="panel-digest" class="panel active">
+    <div class="date-header">
+      <h1>방송 요약</h1>
+      <p>머니코믹스 라이브 자동 요약 — 날짜를 클릭하면 내용을 확인할 수 있습니다</p>
+    </div>
+    <div id="digest-list" class="digest-list">
+      <div class="loading"><div class="spinner"></div> 불러오는 중...</div>
+    </div>
+  </div>
+
+  <!-- ── SETTINGS ── -->
+  <div id="panel-settings" class="panel">
+
+    <!-- GitHub 토큰 -->
+    <div class="settings-section">
+      <h2>GitHub 연동</h2>
+      <div class="notice">
+        아래 기능들은 <strong>GitHub Personal Access Token</strong>이 필요합니다.<br>
+        발급: GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → <strong>repo 권한 체크</strong><br>
+        토큰은 브라우저 로컬에만 저장되며 외부로 전송되지 않습니다.
+      </div>
+      <div class="field">
+        <label>PERSONAL ACCESS TOKEN</label>
+        <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
+      </div>
+      <button class="btn btn-secondary" onclick="saveToken()">토큰 저장</button>
+      <div id="token-status" class="status-msg" style="font-size:12px;margin-top:8px;min-height:18px;"></div>
+    </div>
+
+    <!-- 수동 실행 -->
+    <div class="manual-box">
+      <h2>⚡ 수동 실행</h2>
+      <div class="desc">
+        유튜브 URL을 입력하면 해당 영상을 즉시 요약합니다.<br>
+        디버깅, 과거 영상 소급 처리, 긴급 라이브 대응에 사용하세요.
+      </div>
+      <div class="manual-row">
+        <input type="text" id="manual-url" placeholder="https://www.youtube.com/watch?v=..." />
+        <button class="btn btn-primary" id="run-btn" onclick="triggerManual()">실행</button>
+      </div>
+      <div id="manual-status" class="manual-status"></div>
+      <div id="run-log" class="run-log"></div>
+    </div>
+
+    <!-- 프롬프트 편집 -->
+    <div class="settings-section">
+      <h2>요약 프롬프트</h2>
+      <div class="notice">
+        수정 후 저장하면 다음 실행부터 즉시 반영됩니다.
+      </div>
+      <div class="field">
+        <textarea id="prompt-editor" placeholder="프롬프트 불러오는 중..."></textarea>
+      </div>
+      <button class="btn btn-secondary" onclick="loadPrompt()">새로고침</button>
+      <button class="btn btn-primary" id="save-btn" onclick="savePrompt()">저장</button>
+      <div id="prompt-status" style="font-size:12px;margin-top:10px;min-height:18px;"></div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  const OWNER = 'coinGazua';
+  const REPO  = 'money-comics-digest';
+  const BRANCH = 'main';
+
+  // ── 탭 전환 ──
+  function switchTab(name, el) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    el.classList.add('active');
+    if (name === 'settings') { getToken(); loadPrompt(); }
+  }
+
+  // ── 요약 목록 ──
+  async function loadDigestList() {
+    const el = document.getElementById('digest-list');
+    try {
+      const res = await fetch(`data/index.json?t=${Date.now()}`);
+      if (!res.ok) throw new Error();
+      const { dates } = await res.json();
+      if (!dates || !dates.length) throw new Error('empty');
+
+      el.innerHTML = dates.map(date => `
+        <div class="digest-item" id="item-${date}">
+          <div class="digest-header" onclick="toggleItem('${date}')">
+            <div class="digest-meta">
+              <span class="digest-date">${date}</span>
+              <span class="digest-count" id="count-${date}">...</span>
+            </div>
+            <span class="digest-chevron">▼</span>
+          </div>
+          <div class="digest-body" id="body-${date}">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+        </div>`).join('');
+    } catch {
+      el.innerHTML = `<div class="empty-state">
+        <div class="icon">📭</div>
+        <h3>아직 요약된 방송이 없습니다</h3>
+        <p>GitHub Actions가 라이브 종료를 감지하면<br>자동으로 요약이 생성됩니다<br><br>또는 설정 탭에서 URL을 직접 입력해 즉시 실행하세요</p>
+      </div>`;
+    }
+  }
+
+  async function toggleItem(date) {
+    const item = document.getElementById('item-' + date);
+    const body = document.getElementById('body-' + date);
+    if (item.classList.contains('open')) { item.classList.remove('open'); return; }
+    item.classList.add('open');
+    if (!body.querySelector('.loading')) return;
+    try {
+      const res = await fetch(`data/${date}.json?t=${Date.now()}`);
+      const data = await res.json();
+      const items = Array.isArray(data) ? data : [data];
+      document.getElementById('count-' + date).textContent = `${items.length}개 방송`;
+      body.innerHTML = items.map(i => `
+        <div class="sub-item">
+          <div class="sub-title">${esc(i.title)}</div>
+          <div class="summary-text">${esc(i.summary)}</div>
+        </div>`).join('');
+    } catch {
+      body.innerHTML = `<div class="sub-item"><p style="color:var(--text3);font-size:13px;">불러오기 실패</p></div>`;
+    }
+  }
+
+  function esc(s) {
+    return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── 토큰 ──
+  function saveToken() {
+    const v = document.getElementById('gh-token').value.trim();
+    if (!v) return;
+    localStorage.setItem('gh_token', v);
+    setStatus('token-status', '✓ 저장됨', 'ok');
+  }
+  function getToken() {
+    const v = localStorage.getItem('gh_token') || '';
+    if (v) document.getElementById('gh-token').value = v;
+    return v;
+  }
+
+  // ── 수동 실행 ──
+  async function triggerManual() {
+    const token = getToken();
+    if (!token) { setStatus('manual-status', '⚠ 먼저 GitHub 토큰을 저장해주세요', 'err'); return; }
+
+    const url = document.getElementById('manual-url').value.trim();
+    if (!url) { setStatus('manual-status', '⚠ YouTube URL을 입력해주세요', 'err'); return; }
+    if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+      setStatus('manual-status', '⚠ 유효하지 않은 YouTube URL', 'err'); return;
+    }
+
+    const btn = document.getElementById('run-btn');
+    btn.disabled = true; btn.textContent = '실행 중...';
+    setStatus('manual-status', '⏳ GitHub Actions 트리거 중...', 'info');
+
+    const log = document.getElementById('run-log');
+    log.style.display = 'block';
+    log.textContent = `> URL: ${url}\n> GitHub Actions 워크플로우 실행 요청 중...\n`;
+
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/daily.yml/dispatches`,
+        {
+          method: 'POST',
+          headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ref: BRANCH, inputs: { manual_url: url } })
+        }
+      );
+
+      if (res.status === 204) {
+        setStatus('manual-status', '✅ 실행 요청 성공 — GitHub Actions에서 처리 중입니다 (1~3분 소요)', 'ok');
+        log.textContent += `> ✅ 워크플로우 트리거 성공\n> GitHub Actions 탭에서 진행 상황 확인 가능\n> https://github.com/${OWNER}/${REPO}/actions\n`;
+        document.getElementById('manual-url').value = '';
+      } else {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `HTTP ${res.status}`);
+      }
+    } catch (e) {
+      setStatus('manual-status', `⚠ 실행 실패: ${e.message}`, 'err');
+      log.textContent += `> ❌ 오류: ${e.message}\n`;
+    }
+
+    btn.disabled = false; btn.textContent = '실행';
+  }
+
+  // ── 프롬프트 ──
+  async function loadPrompt() {
+    const el = document.getElementById('prompt-editor');
+    try {
+      const res = await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/config/prompt.txt?t=${Date.now()}`);
+      if (!res.ok) throw new Error();
+      el.value = await res.text();
+    } catch {
+      el.placeholder = '프롬프트를 불러올 수 없습니다';
+    }
+  }
+
+  async function savePrompt() {
+    const token = getToken();
+    if (!token) { setStatus('prompt-status', '⚠ 토큰을 먼저 저장해주세요', 'err'); return; }
+
+    const content = document.getElementById('prompt-editor').value;
+    const btn = document.getElementById('save-btn');
+    btn.disabled = true; btn.textContent = '저장 중...';
+
+    try {
+      const shaRes = await fetch(
+        `https://api.github.com/repos/${OWNER}/${REPO}/contents/config/prompt.txt`,
+        { headers: { Authorization: `token ${token}` } }
+      );
+      const { sha } = await shaRes.json();
+
+      const res = await fetch(
+        `https://api.github.com/repos/${OWNER}/${REPO}/contents/config/prompt.txt`,
+        {
+          method: 'PUT',
+          headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: 'Update prompt',
+            content: btoa(unescape(encodeURIComponent(content))),
+            sha, branch: BRANCH
+          })
+        }
+      );
+      if (res.ok) setStatus('prompt-status', '✓ 저장 완료 — 다음 실행부터 반영됩니다', 'ok');
+      else throw new Error('저장 실패');
+    } catch (e) {
+      setStatus('prompt-status', `⚠ ${e.message} — 토큰 권한(repo) 확인`, 'err');
+    }
+    btn.disabled = false; btn.textContent = '저장';
+  }
+
+  function setStatus(id, msg, type) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = type === 'ok' ? 'status-ok' : type === 'err' ? 'status-err' : 'status-info';
+  }
+
+  // ── 초기화 ──
+  loadDigestList();
+</script>
+</body>
+</html>
