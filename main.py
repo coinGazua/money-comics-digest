@@ -67,13 +67,18 @@ def get_completed_lives():
 # ─────────────────────────────────────────
 
 def get_transcript(video_id):
+    import requests
     cookies = os.environ.get('YOUTUBE_COOKIES', '')
-    cookie_path = None
+    session = requests.Session()
     if cookies:
         cookie_path = '/tmp/cookies.txt'
         with open(cookie_path, 'w') as f:
             f.write(cookies)
-    api = YouTubeTranscriptApi(cookies=cookie_path)
+        import http.cookiejar
+        cj = http.cookiejar.MozillaCookieJar(cookie_path)
+        cj.load()
+        session.cookies = cj
+    api = YouTubeTranscriptApi(http_client=session)
     try:
         transcript_list = api.list(video_id)
         try:
@@ -88,18 +93,17 @@ def get_transcript(video_id):
         print(f"  자막 추출 성공 | {t.language} | 자동생성: {t.is_generated} | {len(text)}글자")
         return text
     except TranscriptsDisabled:
-        print("  ⚠️ 자막 비활성화 — 채널 설정에서 자막이 꺼져 있음")
+        print("  ⚠️ 자막 비활성화")
         return None
     except NoTranscriptFound:
-        print("  ⚠️ 자막 없음 — 라이브 종료 후 자막 생성까지 수십 분 소요될 수 있음")
+        print("  ⚠️ 자막 없음")
         return None
     except VideoUnavailable:
-        print("  ⚠️ 영상 접근 불가 — 비공개 또는 삭제")
+        print("  ⚠️ 영상 접근 불가")
         return None
     except Exception as e:
         print(f"  ⚠️ 자막 추출 실패: {type(e).__name__}: {e}")
         return None
-
 # ─────────────────────────────────────────
 # 요약
 # ─────────────────────────────────────────
