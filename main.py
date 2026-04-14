@@ -2,18 +2,18 @@ import os
 import json
 import datetime
 import subprocess
+import http.cookiejar
+import requests
 from googleapiclient.discovery import build
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound, VideoUnavailable
 import anthropic
 
-YOUTUBE_API_KEY = os.environ['YOUTUBE_API_KEY']
-ANTHROPIC_API_KEY = os.environ['ANTHROPIC_API_KEY']
+YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY', '')
+ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
+GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN', '')
 CHANNEL_ID = 'UCJo6G1u0e_-wS-JQn3T-zEw'
-
-# ─────────────────────────────────────────
-# 유튜브
-# ─────────────────────────────────────────
+COOKIE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies.txt')
 
 def get_video_id_from_url(url):
     import re
@@ -63,12 +63,17 @@ def get_completed_lives():
         })
     return videos
 
-# ─────────────────────────────────────────
-# 자막
-# ─────────────────────────────────────────
-
 def get_transcript(video_id):
-    api = YouTubeTranscriptApi()
+    session = requests.Session()
+    if os.path.exists(COOKIE_PATH):
+        cj = http.cookiejar.MozillaCookieJar(COOKIE_PATH)
+        try:
+            cj.load(ignore_discard=True, ignore_expires=True)
+            session.cookies = cj
+            print(f"  쿠키 로드 완료")
+        except Exception as e:
+            print(f"  쿠키 로드 실패: {e}")
+    api = YouTubeTranscriptApi(http_client=session)
     try:
         transcript_list = api.list(video_id)
         try:
@@ -95,16 +100,12 @@ def get_transcript(video_id):
         print(f"  ⚠️ 자막 추출 실패: {type(e).__name__}: {e}")
         return None
 
-# ─────────────────────────────────────────
-# 요약
-# ─────────────────────────────────────────
-
 def load_prompt():
     try:
-        with open('config/prompt.txt', 'r', encoding='utf-8') as f:
+        prompt_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config', 'prompt.txt')
+        with open(prompt_path, 'r', encoding='utf-8') as f:
             return f.read()
     except:
-        print("⚠️ config/prompt.txt 없음 — 기본 프롬프트 사용")
         return get_default_prompt()
 
 def get_default_prompt():
@@ -150,17 +151,14 @@ def summarize_with_claude(transcript, prompt):
     )
     return message.content[0].text
 
-# ─────────────────────────────────────────
-# 저장 + Git push
-# ─────────────────────────────────────────
-
 def already_processed(video_id):
-    if not os.path.exists('data'):
+    data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+    if not os.path.exists(data_dir):
         return False
-    for filename in os.listdir('data'):
+    for filename in os.listdir(data_dir):
         if filename.endswith('.json') and filename != 'index.json':
             try:
-                with open(f'data/{filename}', 'r', encoding='utf-8') as f:
+                with open(os.path.join(data_dir, filename), 'r', encoding='utf-8') as f:
                     items = json.load(f)
                     if not isinstance(items, list):
                         items = [items]
@@ -171,8 +169,10 @@ def already_processed(video_id):
     return False
 
 def save_result(video):
-    os.makedirs('data', exist_ok=True)
-    filename = f'data/{video["date_str"]}.json'
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    data_dir = os.path.join(base_dir, 'data')
+    os.makedirs(data_dir, exist_ok=True)
+    filename = os.path.join(data_dir, f'{video["date_str"]}.json')
     existing = []
     if os.path.exists(filename):
         with open(filename, 'r', encoding='utf-8') as f:
@@ -189,30 +189,29 @@ def save_result(video):
     with open(filename, 'w', encoding='utf-8') as f:
         json.dump(existing, f, ensure_ascii=False, indent=2)
     print(f"  💾 저장: {filename}")
-    update_index()
-    git_push()
+    update_index(data_dir)
+    git_push(base_dir)
 
-def update_index():
+def update_index(data_dir):
     dates = sorted(
-        [f.replace('.json', '') for f in os.listdir('data')
+        [f.replace('.json', '') for f in os.listdir(data_dir)
          if f.endswith('.json') and f != 'index.json'],
         reverse=True
     )
-    with open('data/index.json', 'w', encoding='utf-8') as f:
+    with open(os.path.join(data_dir, 'index.json'), 'w', encoding='utf-8') as f:
         json.dump({'dates': dates}, f, ensure_ascii=False, indent=2)
 
-def git_push():
+def git_push(base_dir):
     try:
-        subprocess.run(['git', 'add', 'data/'], check=True)
-        subprocess.run(['git', 'commit', '-m', f'digest: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} KST'], check=True)
-        subprocess.run(['git', 'push'], check=True)
+        # GitHub Token으로 remote URL 설정
+        remote_url = f'https://{GITHUB_TOKEN}@github.com/coinGazua/money-comics-digest.git'
+        subprocess.run(['git', 'remote', 'set-url', 'origin', remote_url], cwd=base_dir, check=True)
+        subprocess.run(['git', 'add', 'data/'], cwd=base_dir, check=True)
+        subprocess.run(['git', 'commit', '-m', f'digest: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} KST'], cwd=base_dir, check=True)
+        subprocess.run(['git', 'push'], cwd=base_dir, check=True)
         print("  🚀 GitHub push 완료")
     except Exception as e:
         print(f"  ⚠️ Git push 실패: {e}")
-
-# ─────────────────────────────────────────
-# 실행
-# ─────────────────────────────────────────
 
 def process_video(video):
     print(f"\n[처리] {video['title']} ({video['id']})")
