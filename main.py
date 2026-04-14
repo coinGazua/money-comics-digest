@@ -1,6 +1,7 @@
 import os
 import json
 import datetime
+import subprocess
 from googleapiclient.discovery import build
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound, VideoUnavailable
@@ -67,18 +68,7 @@ def get_completed_lives():
 # ─────────────────────────────────────────
 
 def get_transcript(video_id):
-    import requests
-    cookies = os.environ.get('YOUTUBE_COOKIES', '')
-    session = requests.Session()
-    if cookies:
-        cookie_path = '/tmp/cookies.txt'
-        with open(cookie_path, 'w') as f:
-            f.write(cookies)
-        import http.cookiejar
-        cj = http.cookiejar.MozillaCookieJar(cookie_path)
-        cj.load()
-        session.cookies = cj
-    api = YouTubeTranscriptApi(http_client=session)
+    api = YouTubeTranscriptApi()
     try:
         transcript_list = api.list(video_id)
         try:
@@ -104,6 +94,7 @@ def get_transcript(video_id):
     except Exception as e:
         print(f"  ⚠️ 자막 추출 실패: {type(e).__name__}: {e}")
         return None
+
 # ─────────────────────────────────────────
 # 요약
 # ─────────────────────────────────────────
@@ -160,7 +151,7 @@ def summarize_with_claude(transcript, prompt):
     return message.content[0].text
 
 # ─────────────────────────────────────────
-# 저장
+# 저장 + Git push
 # ─────────────────────────────────────────
 
 def already_processed(video_id):
@@ -199,6 +190,7 @@ def save_result(video):
         json.dump(existing, f, ensure_ascii=False, indent=2)
     print(f"  💾 저장: {filename}")
     update_index()
+    git_push()
 
 def update_index():
     dates = sorted(
@@ -208,6 +200,15 @@ def update_index():
     )
     with open('data/index.json', 'w', encoding='utf-8') as f:
         json.dump({'dates': dates}, f, ensure_ascii=False, indent=2)
+
+def git_push():
+    try:
+        subprocess.run(['git', 'add', 'data/'], check=True)
+        subprocess.run(['git', 'commit', '-m', f'digest: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} KST'], check=True)
+        subprocess.run(['git', 'push'], check=True)
+        print("  🚀 GitHub push 완료")
+    except Exception as e:
+        print(f"  ⚠️ Git push 실패: {e}")
 
 # ─────────────────────────────────────────
 # 실행
