@@ -203,16 +203,16 @@ def update_index(data_dir):
 
 def git_push(base_dir):
     try:
-        # GitHub Token으로 remote URL 설정
         remote_url = f'https://{GITHUB_TOKEN}@github.com/coinGazua/money-comics-digest.git'
         subprocess.run(['git', 'remote', 'set-url', 'origin', remote_url], cwd=base_dir, check=True)
+        subprocess.run(['git', 'pull', '--rebase'], cwd=base_dir, check=True)
         subprocess.run(['git', 'add', 'data/'], cwd=base_dir, check=True)
         subprocess.run(['git', 'commit', '-m', f'digest: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} KST'], cwd=base_dir, check=True)
         subprocess.run(['git', 'push'], cwd=base_dir, check=True)
         print("  🚀 GitHub push 완료")
     except Exception as e:
         print(f"  ⚠️ Git push 실패: {e}")
-
+        
 def process_video(video):
     print(f"\n[처리] {video['title']} ({video['id']})")
     if already_processed(video['id']):
