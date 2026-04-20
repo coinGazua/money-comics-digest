@@ -13,6 +13,7 @@
     --border: #252a35;
     --accent: #4fffb0;
     --accent2: #ff6b35;
+    --accent3: #4db8ff;
     --text: #e8ecf0;
     --text2: #8892a0;
     --text3: #4a5568;
@@ -24,11 +25,8 @@
   header {
     border-bottom: 1px solid var(--border);
     padding: 20px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky; top: 0;
-    background: var(--bg); z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; background: var(--bg); z-index: 100;
   }
   .logo { display: flex; align-items: center; gap: 12px; }
   .logo-dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
@@ -37,37 +35,69 @@
   .logo-text span { color: var(--accent); }
 
   .tabs { display: flex; gap: 2px; }
-  .tab { padding: 8px 20px; font-size: 12px; font-weight: 500; letter-spacing: .08em; cursor: pointer; border-radius: 6px; color: var(--text3); transition: all .2s; border: none; background: none; font-family: 'Noto Sans KR', sans-serif; }
+  .tab { padding: 8px 20px; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 6px; color: var(--text3); transition: all .2s; border: none; background: none; font-family: 'Noto Sans KR', sans-serif; }
   .tab:hover { color: var(--text2); background: var(--surface); }
   .tab.active { color: var(--accent); background: var(--tag-bg); }
 
-  main { max-width: 860px; margin: 0 auto; padding: 40px 32px; }
+  main { max-width: 900px; margin: 0 auto; padding: 40px 32px; }
   .panel { display: none; }
   .panel.active { display: block; }
 
+  /* ── 대시보드 카드 ── */
+  .dashboard-section { margin-bottom: 40px; }
+  .dashboard-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .dashboard-title { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text3); }
+  .dashboard-updated { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text3); }
+
+  .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .cards-grid.three-col { grid-template-columns: 1fr 1fr 1fr; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    transition: border-color .2s;
+  }
+  .card:hover { border-color: var(--text3); }
+
+  .card-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-label .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .card-label.macro .dot { background: var(--accent); }
+  .card-label.nasdaq .dot { background: var(--accent3); }
+  .card-label.kospi .dot { background: #ffd166; }
+  .card-label.crypto .dot { background: #ff9f43; }
+  .card-label.kosdaq .dot { background: var(--accent2); }
+
+  .card-content { font-size: 13px; color: var(--text2); line-height: 1.8; }
+  .card.macro-card { grid-column: 1 / -1; border-color: var(--accent); background: var(--tag-bg); }
+  .card.macro-card .card-content { color: var(--text); }
+
+  .card-na { color: var(--text3); font-style: italic; }
+
+  .dashboard-loading { padding: 40px; text-align: center; color: var(--text3); font-size: 13px; }
+
   /* ── DIGEST ── */
-  .date-header { margin-bottom: 32px; }
-  .date-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-  .date-header p { font-size: 13px; color: var(--text3); }
+  .section-divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  .digest-header-row-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .digest-header-row-top h2 { font-size: 14px; font-weight: 700; color: var(--text2); letter-spacing: .08em; text-transform: uppercase; }
 
   .digest-list { display: flex; flex-direction: column; gap: 8px; }
 
-  /* Level 1: 날짜 */
   .date-item { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: border-color .2s; }
   .date-item:hover { border-color: var(--text3); }
   .date-item.open { border-color: var(--accent); }
 
-  .date-header-row {
-    padding: 16px 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--surface);
-    user-select: none;
-  }
+  .date-header-row { padding: 15px 20px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; background: var(--surface); user-select: none; }
   .date-header-row:hover { background: var(--surface2); }
-
   .date-meta { display: flex; align-items: center; gap: 14px; }
   .date-label { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; color: var(--accent); }
   .date-count { font-size: 11px; color: var(--text3); background: var(--surface2); padding: 2px 8px; border-radius: 20px; border: 1px solid var(--border); }
@@ -77,22 +107,10 @@
   .date-body { display: none; background: var(--bg); }
   .date-item.open > .date-body { display: block; }
 
-  /* Level 2: 방송 */
   .broadcast-item { border-top: 1px solid var(--border); }
-
-  .broadcast-header {
-    padding: 13px 24px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--bg);
-    user-select: none;
-    transition: background .15s;
-  }
+  .broadcast-header { padding: 13px 24px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; background: var(--bg); user-select: none; transition: background .15s; }
   .broadcast-header:hover { background: var(--surface); }
   .broadcast-item.open > .broadcast-header { background: var(--surface); }
-
   .broadcast-title-row { display: flex; align-items: center; gap: 10px; }
   .broadcast-bar { width: 3px; height: 14px; background: var(--accent2); border-radius: 2px; flex-shrink: 0; }
   .broadcast-title { font-size: 13px; font-weight: 500; color: var(--text2); }
@@ -102,45 +120,30 @@
   .broadcast-body { display: none; padding: 20px 24px 24px 38px; background: var(--bg); border-top: 1px solid var(--border); }
   .broadcast-item.open > .broadcast-body { display: block; }
 
+  .summary-oneliner { background: var(--tag-bg); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 0 6px 6px 0; margin-bottom: 16px; font-size: 13px; color: var(--text); line-height: 1.7; }
   .summary-text { font-size: 13.5px; line-height: 2; color: var(--text2); white-space: pre-wrap; }
 
-  /* 한줄요약 하이라이트 */
-  .summary-oneliner {
-    background: var(--tag-bg);
-    border-left: 3px solid var(--accent);
-    padding: 10px 14px;
-    border-radius: 0 6px 6px 0;
-    margin-bottom: 16px;
-    font-size: 13px;
-    color: var(--text);
-    line-height: 1.7;
-  }
-
-  .empty-state { text-align: center; padding: 80px 20px; color: var(--text3); }
-  .empty-state .icon { font-size: 40px; margin-bottom: 16px; }
-  .empty-state h3 { font-size: 15px; font-weight: 500; margin-bottom: 8px; color: var(--text2); }
-  .empty-state p { font-size: 13px; line-height: 1.8; }
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text3); }
+  .empty-state .icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-state h3 { font-size: 14px; font-weight: 500; margin-bottom: 6px; color: var(--text2); }
+  .empty-state p { font-size: 12px; line-height: 1.8; }
 
   /* ── SETTINGS ── */
   .settings-section { margin-bottom: 40px; }
   .settings-section h2 { font-size: 14px; font-weight: 700; color: var(--text2); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-
   .field { margin-bottom: 16px; }
   .field label { display: block; font-size: 12px; color: var(--text3); margin-bottom: 8px; letter-spacing: .06em; }
   .field input, .field textarea { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 12px 16px; outline: none; transition: border-color .2s; resize: vertical; }
   .field input:focus, .field textarea:focus { border-color: var(--accent); }
   .field textarea { min-height: 360px; line-height: 1.8; }
-
   .btn { padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all .2s; font-family: 'Noto Sans KR', sans-serif; }
   .btn-primary { background: var(--accent); color: #0d0f12; }
   .btn-primary:hover { filter: brightness(1.1); }
   .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
   .btn-secondary { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); margin-right: 10px; }
   .btn-secondary:hover { border-color: var(--text3); }
-
   .notice { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; font-size: 12px; color: var(--text3); line-height: 1.8; margin-bottom: 20px; }
   .notice strong { color: var(--text2); }
-
   .manual-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 40px; }
   .manual-box h2 { font-size: 14px; font-weight: 700; color: var(--text2); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; }
   .manual-box .desc { font-size: 12px; color: var(--text3); margin-bottom: 20px; line-height: 1.7; }
@@ -149,13 +152,10 @@
   .manual-row input:focus { border-color: var(--accent); }
   .manual-row input::placeholder { color: var(--text3); }
   .manual-status { margin-top: 10px; font-size: 12px; min-height: 18px; }
-  .run-log { margin-top: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text3); line-height: 1.8; display: none; }
-
   .status-ok { color: var(--accent); }
   .status-err { color: #ff6b6b; }
   .status-info { color: #ffd166; }
-
-  .loading { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 60px; color: var(--text3); font-size: 13px; }
+  .loading { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 40px; color: var(--text3); font-size: 13px; }
   .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
@@ -175,18 +175,33 @@
 
 <main>
 
-  <!-- ── DIGEST ── -->
+  <!-- ── 요약 탭 ── -->
   <div id="panel-digest" class="panel active">
-    <div class="date-header">
-      <h1>방송 요약</h1>
-      <p>날짜 → 방송 순서로 클릭하면 내용을 확인할 수 있습니다</p>
+
+    <!-- 대시보드 상단 카드 -->
+    <div class="dashboard-section">
+      <div class="dashboard-header">
+        <span class="dashboard-title">최근 3일 종합 뷰</span>
+        <span class="dashboard-updated" id="dashboard-updated">-</span>
+      </div>
+      <div id="dashboard-cards">
+        <div class="dashboard-loading"><div class="loading"><div class="spinner"></div> 로딩 중...</div></div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- 방송 목록 -->
+    <div class="digest-header-row-top">
+      <h2>방송별 요약</h2>
     </div>
     <div id="digest-list" class="digest-list">
       <div class="loading"><div class="spinner"></div> 불러오는 중...</div>
     </div>
+
   </div>
 
-  <!-- ── SETTINGS ── -->
+  <!-- ── 설정 탭 ── -->
   <div id="panel-settings" class="panel">
 
     <div class="settings-section">
@@ -205,21 +220,18 @@
 
     <div class="manual-box">
       <h2>⚡ 수동 실행</h2>
-      <div class="desc">
-        유튜브 URL을 입력하면 GitHub Actions를 트리거합니다.<br>
-        단, 현재 로컬 PC에서 실행 중인 경우 PowerShell에서 직접 실행하세요.
-      </div>
+      <div class="desc">로컬 PC에서 실행 중인 경우 PowerShell에서 직접 실행하세요.<br>
+      <code style="font-family:monospace;font-size:11px;color:var(--accent)">python main.py</code></div>
       <div class="manual-row">
         <input type="text" id="manual-url" placeholder="https://www.youtube.com/watch?v=..." />
         <button class="btn btn-primary" id="run-btn" onclick="triggerManual()">실행</button>
       </div>
       <div id="manual-status" class="manual-status"></div>
-      <div id="run-log" class="run-log"></div>
     </div>
 
     <div class="settings-section">
       <h2>요약 프롬프트</h2>
-      <div class="notice">수정 후 저장하면 다음 실행부터 즉시 반영됩니다.</div>
+      <div class="notice">수정 후 저장하면 다음 실행부터 반영됩니다.</div>
       <div class="field">
         <textarea id="prompt-editor" placeholder="프롬프트 불러오는 중..."></textarea>
       </div>
@@ -244,7 +256,49 @@
     if (name === 'settings') { getToken(); loadPrompt(); }
   }
 
-  // ── 요약 목록 (2단계) ──
+  // ── 대시보드 카드 ──
+  async function loadDashboard() {
+    const el = document.getElementById('dashboard-cards');
+    try {
+      const res = await fetch(`data/dashboard.json?t=${Date.now()}`);
+      if (!res.ok) throw new Error();
+      const d = await res.json();
+
+      document.getElementById('dashboard-updated').textContent = d.updated_at ? `업데이트: ${d.updated_at}` : '';
+
+      el.innerHTML = `
+        <div class="cards-grid" style="margin-bottom:12px">
+          <div class="card macro-card">
+            <div class="card-label macro"><span class="dot"></span> 매크로 뷰</div>
+            <div class="card-content">${esc(d['매크로뷰'] || 'N/A')}</div>
+          </div>
+        </div>
+        <div class="cards-grid" style="margin-bottom:12px">
+          <div class="card">
+            <div class="card-label nasdaq"><span class="dot"></span> 나스닥</div>
+            <div class="card-content ${!d['나스닥'] || d['나스닥']==='N/A' ? 'card-na' : ''}">${esc(d['나스닥'] || 'N/A')}</div>
+          </div>
+          <div class="card">
+            <div class="card-label kospi"><span class="dot"></span> 코스피</div>
+            <div class="card-content ${!d['코스피'] || d['코스피']==='N/A' ? 'card-na' : ''}">${esc(d['코스피'] || 'N/A')}</div>
+          </div>
+        </div>
+        <div class="cards-grid">
+          <div class="card">
+            <div class="card-label crypto"><span class="dot"></span> 암호화폐</div>
+            <div class="card-content ${!d['암호화폐'] || d['암호화폐']==='N/A' ? 'card-na' : ''}">${esc(d['암호화폐'] || 'N/A')}</div>
+          </div>
+          <div class="card">
+            <div class="card-label kosdaq"><span class="dot"></span> 코스닥150 ETF</div>
+            <div class="card-content ${!d['코스닥150'] || d['코스닥150']==='N/A' ? 'card-na' : ''}">${esc(d['코스닥150'] || 'N/A')}</div>
+          </div>
+        </div>`;
+    } catch {
+      el.innerHTML = `<div class="empty-state"><div class="icon">📊</div><h3>대시보드 데이터 없음</h3><p>방송 요약이 생성되면 자동으로 표시됩니다</p></div>`;
+    }
+  }
+
+  // ── 방송 목록 (2단계) ──
   async function loadDigestList() {
     const el = document.getElementById('digest-list');
     try {
@@ -270,7 +324,7 @@
       el.innerHTML = `<div class="empty-state">
         <div class="icon">📭</div>
         <h3>아직 요약된 방송이 없습니다</h3>
-        <p>Python 스크립트 실행 후 결과가 GitHub에 push되면<br>여기에 자동으로 나타납니다</p>
+        <p>Python 스크립트 실행 후 결과가 push되면 자동으로 나타납니다</p>
       </div>`;
     }
   }
@@ -281,13 +335,11 @@
     if (item.classList.contains('open')) { item.classList.remove('open'); return; }
     item.classList.add('open');
     if (!body.querySelector('.loading')) return;
-
     try {
       const res = await fetch(`data/${date}.json?t=${Date.now()}`);
       const data = await res.json();
       const items = Array.isArray(data) ? data : [data];
       document.getElementById('count-' + date).textContent = `${items.length}개 방송`;
-
       body.innerHTML = items.map((item, idx) => `
         <div class="broadcast-item" id="bc-${date}-${idx}">
           <div class="broadcast-header" onclick="toggleBroadcast('${date}', ${idx})">
@@ -307,21 +359,14 @@
   }
 
   function toggleBroadcast(date, idx) {
-    const item = document.getElementById(`bc-${date}-${idx}`);
-    item.classList.toggle('open');
+    document.getElementById(`bc-${date}-${idx}`).classList.toggle('open');
   }
 
   function renderSummary(text) {
     if (!text) return '';
     const escaped = esc(text);
-
-    // 한줄 요약 추출해서 상단 하이라이트
     const onelineMatch = escaped.match(/한줄 요약[:：]\s*([^\n]+)/);
-    let oneliner = '';
-    if (onelineMatch) {
-      oneliner = `<div class="summary-oneliner">💡 ${onelineMatch[1]}</div>`;
-    }
-
+    const oneliner = onelineMatch ? `<div class="summary-oneliner">💡 ${onelineMatch[1]}</div>` : '';
     return oneliner + `<div class="summary-text">${escaped}</div>`;
   }
 
@@ -348,35 +393,20 @@
     if (!token) { setStatus('manual-status', '⚠ 먼저 GitHub 토큰을 저장해주세요', 'err'); return; }
     const url = document.getElementById('manual-url').value.trim();
     if (!url) { setStatus('manual-status', '⚠ YouTube URL을 입력해주세요', 'err'); return; }
-
     const btn = document.getElementById('run-btn');
     btn.disabled = true; btn.textContent = '실행 중...';
     setStatus('manual-status', '⏳ 트리거 중...', 'info');
-
-    const log = document.getElementById('run-log');
-    log.style.display = 'block';
-    log.textContent = `> URL: ${url}\n> 요청 중...\n`;
-
     try {
       const res = await fetch(
         `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/daily.yml/dispatches`,
-        {
-          method: 'POST',
-          headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ref: BRANCH, inputs: { manual_url: url } })
-        }
+        { method: 'POST', headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ref: BRANCH, inputs: { manual_url: url } }) }
       );
       if (res.status === 204) {
-        setStatus('manual-status', '✅ 요청 성공 — GitHub Actions에서 처리 중 (1~3분)', 'ok');
-        log.textContent += `> ✅ 성공\n> https://github.com/${OWNER}/${REPO}/actions\n`;
+        setStatus('manual-status', '✅ 요청 성공', 'ok');
         document.getElementById('manual-url').value = '';
-      } else {
-        throw new Error(`HTTP ${res.status}`);
-      }
-    } catch (e) {
-      setStatus('manual-status', `⚠ 실패: ${e.message}`, 'err');
-      log.textContent += `> ❌ ${e.message}\n`;
-    }
+      } else throw new Error(`HTTP ${res.status}`);
+    } catch (e) { setStatus('manual-status', `⚠ 실패: ${e.message}`, 'err'); }
     btn.disabled = false; btn.textContent = '실행';
   }
 
@@ -387,9 +417,7 @@
       const res = await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/config/prompt.txt?t=${Date.now()}`);
       if (!res.ok) throw new Error();
       el.value = await res.text();
-    } catch {
-      el.placeholder = '프롬프트를 불러올 수 없습니다';
-    }
+    } catch { el.placeholder = '프롬프트를 불러올 수 없습니다'; }
   }
 
   async function savePrompt() {
@@ -399,28 +427,15 @@
     const btn = document.getElementById('save-btn');
     btn.disabled = true; btn.textContent = '저장 중...';
     try {
-      const shaRes = await fetch(
-        `https://api.github.com/repos/${OWNER}/${REPO}/contents/config/prompt.txt`,
-        { headers: { Authorization: `token ${token}` } }
-      );
+      const shaRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/config/prompt.txt`,
+        { headers: { Authorization: `token ${token}` } });
       const { sha } = await shaRes.json();
-      const res = await fetch(
-        `https://api.github.com/repos/${OWNER}/${REPO}/contents/config/prompt.txt`,
-        {
-          method: 'PUT',
-          headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: 'Update prompt',
-            content: btoa(unescape(encodeURIComponent(content))),
-            sha, branch: BRANCH
-          })
-        }
-      );
+      const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/config/prompt.txt`,
+        { method: 'PUT', headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: 'Update prompt', content: btoa(unescape(encodeURIComponent(content))), sha, branch: BRANCH }) });
       if (res.ok) setStatus('prompt-status', '✓ 저장 완료', 'ok');
       else throw new Error('저장 실패');
-    } catch (e) {
-      setStatus('prompt-status', `⚠ ${e.message}`, 'err');
-    }
+    } catch (e) { setStatus('prompt-status', `⚠ ${e.message}`, 'err'); }
     btn.disabled = false; btn.textContent = '저장';
   }
 
@@ -430,6 +445,7 @@
     el.className = type === 'ok' ? 'status-ok' : type === 'err' ? 'status-err' : 'status-info';
   }
 
+  loadDashboard();
   loadDigestList();
 </script>
 </body>
