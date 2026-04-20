@@ -412,6 +412,8 @@ def run_scheduled():
     videos = get_completed_lives()
     if not videos:
         print("완료된 라이브 없음")
+        generate_dashboard()
+        git_push()
         return
 
     new_count = 0
@@ -419,11 +421,8 @@ def run_scheduled():
         if process_video(video):
             new_count += 1
 
-    if new_count > 0:
-        generate_dashboard()
-        git_push()
-    else:
-        print("\n신규 방송 없음 — 대시보드 업데이트 스킵")
+    generate_dashboard()
+    git_push()
 
 def run_manual(url):
     print(f"=== 수동 모드: {url} ===")
@@ -435,10 +434,10 @@ def run_manual(url):
     if not video:
         print("❌ 영상 정보 조회 실패")
         return
-    if process_video(video):
-        generate_dashboard()
-        git_push()
-
+    process_video(video)
+    generate_dashboard()
+    git_push()
+    
 if __name__ == '__main__':
     manual_url = os.environ.get('MANUAL_URL', '').strip()
     if manual_url:
