@@ -22,6 +22,16 @@ DATA_DIR = os.path.join(BASE_DIR, 'data')
 # 유튜브
 # ─────────────────────────────────────────
 
+# .env 자동 로드
+env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+if os.path.exists(env_path):
+    with open(env_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line and '=' in line:
+                key, val = line.split('=', 1)
+                os.environ.setdefault(key.strip(), val.strip())
+
 def get_video_id_from_url(url):
     import re
     patterns = [
